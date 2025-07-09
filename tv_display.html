@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AISAT Registral TV Display</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: white;
+            overflow: hidden;
+        }
+        
+        .main-layout {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .left-panel {
+            width: 75%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .right-panel {
+            width: 25%;
+            background-color: #0a1535;
+            border-left: 2px solid #001489;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-auto-rows: minmax(150px, auto);
+            gap: 15px;
+            padding: 15px;
+            height: 65vh;
+            overflow-y: auto;
+            background-color: white;
+        }
+        
+        .window {
+            border: 2px solid #001489;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .window-title {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #001489;
+            color: white;
+            text-align: center;
+            border-bottom: 2px solid black;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        .status-indicator.active {
+            background-color: #a9dc76;
+        }
+        
+        .status-indicator.inactive {
+            background-color: #fc5d7c;
+        }
+        
+        .window-content {
+            flex: 1;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 10px;
+            overflow: hidden;
+        }
+        
+        .pending-list {
+            flex: 1;
+            overflow: hidden;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .pending-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            height: 28%;
+            transition: background-color 0.5s ease;
+        }
+        
+        .pending-item:last-child {
+            border-bottom: none;
+        }
+        
+        .pending-item.new-item {
+            animation: highlight-new 2s ease;
+        }
+        
+        @keyframes highlight-new {
+            0% { background-color: #e3f2fd; }
+            100% { background-color: transparent; }
+        }
+        
+        .request-id {
+            font-weight: bold;
+            font-size: 22px;
+            color: var(--accent-color);
+        }
+        
+        .pending-item .student-name {
+            font-weight: bold;
+            font-size: 20px;
+            margin-top: 5px;
+        }
+        
+        .pending-item.express {
+            border-left: 4px solid #f39c12;
+        }
+        
+        .pending-item.priority {
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .pending-item.regular {
+            border-left: 4px solid #3498db;
+        }
+        
+        .pending-item.oncall {
+            background-color: #fff9db;
+            animation: highlight 1.5s infinite;
+            font-weight: bold;
+        }
+        
+        @keyframes highlight {
+            0% { background-color: #fff9db; }
+            50% { background-color: #ffecb3; }
+            100% { background-color: #fff9db; }
+        }
+        
+        .req-id {
+            font-size: 24px;
+            font-weight: bold;
+            color: #001489;
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .req-id.highlighted {
+            background-color: #001489;
+            color: white;
+            animation: blink 1.5s infinite;
+        }
+        
+        @keyframes blink {
+            0% { background-color: #001489; }
+            50% { background-color: #3f51b5; }
+            100% { background-color: #001489; }
+        }
+        
+        .status-bar {
+            background-color: #001489;
+            color: white;
+            padding: 10px;
+            font-size: 16px;
+            height: 10vh;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border-radius: 5px;
+            padding: 10px;
+            height: 80px;
+        }
+
+        .logo {
+            height: 60px;
+            margin-right: 10px;
+        }
+        
+        .college-text {
+            color: #001489;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .tagline {
+            color: #f39c12;
+            font-size: 18px;
+        }
+
+        .current-queue {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #001489;
+            padding: 10px;
+            flex: 1;
+            height: 100%;
+        }
+
+        .queue-title {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .queue-numbers {
+            font-size: 24px;
+            font-weight: bold;
+            white-space: pre-line;
+        }
+
+        .waiting-section {
+            background-color: white;
+            padding: 10px;
+            border-top: 2px solid black;
+            display: flex;
+            justify-content: space-around;
+            height: 25vh;
+        }
+
+        .waiting-category {
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid black;
+            position: relative;
+            padding: 0 5px;
+        }
+        
+        .waiting-category:last-child {
+            border-right: none;
+        }
+
+        .waiting-title {
+            font-weight: bold;
+            color: black;
+            padding: 5px;
+            font-size: 20px;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #001489;
+        }
+
+        .waiting-numbers {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            padding: 0 5px;
+            overflow-y: auto;
+            flex: 1;
+            max-height: calc(100% - 65px);
+        }
+
+        .waiting-number {
+            font-weight: normal;
+            color: black;
+            padding: 3px 0;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+            transition: background-color 0.5s ease;
+        }
+        
+        .waiting-number.new-item {
+            animation: highlight-new 2s ease;
+        }
+        
+        .waiting-count-container {
+            border-top: 2px solid black;
+            padding-top: 5px;
+            width: 100%;
+            position: absolute;
+            bottom: 2px;
+            left: 0;
+            background-color: white;
+            z-index: 5;
+        }
+
+        .waiting-count {
+            font-size: 16px;
+            font-weight: bold;
+            color: black;
+        }
+        
+        .no-windows {
+            display: none;
+            grid-column: span 4;
+            text-align: center;
+            padding: 50px;
+            font-size: 24px;
+            color: #666;
+            font-weight: bold;
+        }
+        
+        .ads-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: #000;
+        }
+        
+        .ads-title {
+            background-color: #001489;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .ads-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        
+        .ad-item {
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+        
+        .ad-item.active {
+            display: block;
+            width: 100%;
+            height: 100%;
+            animation: fadeIn 1s;
+            background-color: #000;
+        }
+        
+        .ad-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            margin: 0;
+            padding: 0;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .empty {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        /* News Ticker Styles */
+        .news-ticker {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #001489;
+            color: white;
+            padding: 10px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            border-top: 2px solid #f39c12;
+            z-index: 1000;
+        }
+        
+        .ticker-content {
+            display: inline-block;
+            animation: ticker 30s linear infinite;
+            padding-right: 50px; /* Space between repetitions */
+        }
+        
+        @keyframes ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-layout">
+        <div class="left-panel">
+            <div class="container" id="windows-container">
+                <div class="no-windows" id="no-windows-message">
+                    No active admins online
+                </div>
+                <!-- Admin windows will be inserted here -->
+            </div>
+
+            <div class="status-bar">
+                <div class="logo-section">
+                    <div>
+                        <div class="college-text">AISAT<span style="font-size: 20px;">COLLEGE</span></div>
+                        <div class="tagline">WE TEACH YOU EXCEL.</div>
+                    </div>
+                </div>
+                
+                <div class="current-queue">
+                    <div class="queue-title" style="margin-top: 20px;">STILL IN QUEUE - CASHIER WILL WAIT FOR 10 MINUTES ONLY</div>
+                    <div style="font-size: 20px;" class="queue-numbers" id="current-queue"></div>
+                </div>
+            </div>
+
+            <div class="waiting-section">
+                <div class="waiting-category">
+                    <div class="waiting-title">EXPRESS</div>
+                    <div class="waiting-numbers" id="express-queue"></div>
+                    <div class="waiting-count-container">
+                        <div class="waiting-count">WAITING <span id="express-count">0</span></div>
+                    </div>
+                </div>
+
+                <div class="waiting-category">
+                    <div class="waiting-title">PRIORITY</div>
+                    <div class="waiting-numbers" id="priority-queue"></div>
+                    <div class="waiting-count-container">
+                        <div class="waiting-count">WAITING <span id="priority-count">0</span></div>
+                    </div>
+                </div>
+
+                <div class="waiting-category">
+                    <div class="waiting-title">REGULAR</div>
+                    <div class="waiting-numbers" id="regular-queue"></div>
+                    <div class="waiting-count-container">
+                        <div class="waiting-count">WAITING <span id="regular-count">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="ads-panel">
+                <div class="ads-title">ANNOUNCEMENTS</div>
+                <div class="ads-content" id="ads-container">
+                    <div class="ad-item active">
+                        <div class="text-center text-muted" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                            <div style="font-size: 24px; color: white;">Loading Announcements...</div>
+                            <div style="font-size: 16px; color: #ccc; margin-top: 10px;">Please wait</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- News Ticker -->
+    <div class="news-ticker">
+        <div class="ticker-content" id="ticker-content">
+            Welcome to AISAT College Registral Services • Enrollment for the second semester is now open • Please prepare your requirements before queuing • For inquiries, please contact 123-4567 • Have a great day!
+        </div>
+    </div>
+
+    <script>
+        // Store previous request data to detect changes
+        let previousRequests = [];
+        let previousAdmins = [];
+        
+        // News ticker configuration
+        let tickerMessages = [
+            "Welcome to AISAT College Registral Services",
+            "Enrollment for the second semester is now open",
+            "Please prepare your requirements before queuing",
+            "For inquiries, please contact 123-4567",
+            "Have a great day!"
+        ];
+        
+        // Load ticker messages from API server
+        function loadTickerMessages() {
+            console.log('Fetching ticker messages from server API...');
+            
+            return fetch('https://jimboyaczon.pythonanywhere.com/api/ticker_messages')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server responded with ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+                        console.log('Received ticker messages from API:', data.messages);
+                        tickerMessages = data.messages;
+                        console.log('Updated tickerMessages array:', tickerMessages);
+                        return true;
+                    } else {
+                        console.log('No valid ticker messages received from API, using defaults');
+                        return false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching ticker messages from API:', error);
+                    // Keep using default messages if there's an error
+                    return false;
+                });
+        }
+        
+        function updateTickerContent() {
+            const tickerContent = document.getElementById('ticker-content');
+            
+            // Get current queue content
+            const currentQueueContent = document.getElementById('current-queue').textContent || 'No students being served';
+            
+            // Combine ticker messages with current queue info
+            const combinedContent = tickerMessages.join(' • ') + ' • NOW SERVING: ' + currentQueueContent;
+            
+            tickerContent.innerHTML = combinedContent;
+            
+            // Adjust animation speed based on content length
+            const contentLength = tickerContent.offsetWidth;
+            const viewportWidth = window.innerWidth;
+            const duration = Math.max(15, contentLength / viewportWidth * 20);
+            
+            tickerContent.style.animationDuration = `${duration}s`;
+        }
+        
+        // Load and display announcements from localStorage
+        let currentAdIndex = 0;
+        let announcements = [];
+        let adRotationTimer = null;
+        
+        // Function to convert Dropbox sharing URLs to raw links
+        function convertToDirectDownloadLink(url) {
+            if (!url) return url;
+            
+            // Already a direct dl.dropboxusercontent.com link
+            if (url.includes('dl.dropboxusercontent.com')) {
+                return url;
+            }
+            
+            // Convert www.dropbox.com shared links to dl.dropboxusercontent.com
+            // This matches how ads.html creates links
+            if (url.includes('www.dropbox.com')) {
+                // Replace www.dropbox.com with dl.dropboxusercontent.com and remove ?dl=0
+                return url.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '');
+            }
+            
+            // Not a Dropbox link, return as is
+            return url;
+        }
+        
+        // Function to check if a URL is accessible
+        async function isUrlAccessible(url) {
+            try {
+                const response = await fetch(url, { method: 'HEAD', mode: 'no-cors' });
+                return true; // If no error, assume it's accessible
+            } catch (error) {
+                console.error(`URL accessibility check failed for ${url}:`, error);
+                return false;
+            }
+        }
+        
+        function loadAnnouncements() {
+            try {
+                // First try to fetch announcements from the server API
+                fetch('https://jimboyaczon.pythonanywhere.com/api/get_announcements')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Server responded with ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.announcements && data.announcements.length > 0) {
+                            console.log('Loaded announcements from API:', data.announcements);
+                            processAnnouncements(data.announcements);
+                        } else {
+                            // Fallback to localStorage if API returns empty
+                            loadFromLocalStorage();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching announcements from API:', error);
+                        // Fallback to localStorage
+                        loadFromLocalStorage();
+                    });
+            } catch (error) {
+                console.error('Error in loadAnnouncements:', error);
+                showDefaultAd();
+            }
+        }
+        
+        function loadFromLocalStorage() {
+            try {
+                // Try to load from tvDisplayAnnouncements first (set by ads.html)
+                const storedAnnouncements = localStorage.getItem('tvDisplayAnnouncements') || 
+                                           localStorage.getItem('aisatAnnouncements');
+                
+                console.log('Raw stored announcements data:', storedAnnouncements);
+                
+                if (storedAnnouncements) {
+                    const parsedAnnouncements = JSON.parse(storedAnnouncements);
+                    console.log('Parsed announcements:', parsedAnnouncements);
+                    
+                    if (parsedAnnouncements && parsedAnnouncements.length > 0) {
+                        processAnnouncements(parsedAnnouncements);
+                    } else {
+                        console.log('No announcements found in parsed data');
+                        showDefaultAd();
+                    }
+                } else {
+                    console.log('No announcements found in localStorage');
+                    showDefaultAd();
+                }
+            } catch (error) {
+                console.error('Error loading announcements from localStorage:', error);
+                showDefaultAd();
+            }
+        }
+        
+        function processAnnouncements(rawAnnouncements) {
+            // Check if we have any announcements at all
+            if (!rawAnnouncements || rawAnnouncements.length === 0) {
+                console.log('No announcements to process');
+                showDefaultAd();
+                return;
+            }
+            
+            // Log each announcement's details
+            rawAnnouncements.forEach((ad, index) => {
+                console.log(`Announcement ${index + 1}:`, {
+                    title: ad.title,
+                    isActive: ad.isActive,
+                    fileUrl: ad.fileUrl,
+                    fileType: ad.fileType
+                });
+            });
+            
+            // Filter to only active announcements
+            const activeAnnouncements = rawAnnouncements.filter(ad => ad.isActive);
+            console.log(`Found ${activeAnnouncements.length} active announcements out of ${rawAnnouncements.length} total`);
+            
+            // Only use announcements with valid URLs
+            announcements = activeAnnouncements.filter(ad => {
+                if (!ad.fileUrl) {
+                    console.log(`Skipping announcement "${ad.title}" - no file URL`);
+                    return false;
+                }
+                
+                // Always convert Dropbox URLs to direct download links
+                if (ad.fileUrl.includes('dropbox.com')) {
+                    ad.fileUrl = convertToDirectDownloadLink(ad.fileUrl);
+                    console.log(`Converted Dropbox URL for "${ad.title}": ${ad.fileUrl}`);
+                } else {
+                    console.log(`Using original URL for "${ad.title}": ${ad.fileUrl}`);
+                }
+                
+                return true;
+            });
+            
+            console.log(`Final announcements to display: ${announcements.length}`);
+            
+            if (announcements.length > 0) {
+                startAdRotation();
+            } else {
+                // If no announcements, show default
+                showDefaultAd();
+            }
+        }
+        
+        function showDefaultAd() {
+            const adsContainer = document.getElementById('ads-container');
+            adsContainer.innerHTML = `
+                <div class="ad-item active">
+                    <div class="text-center text-muted" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <div style="font-size: 24px; color: white;">No Announcements Available</div>
+                        <div style="font-size: 16px; color: #ccc; margin-top: 10px;">Please add announcements in the admin panel</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function startAdRotation() {
+            // Clear any existing timer
+            if (adRotationTimer) {
+                clearTimeout(adRotationTimer);
+            }
+            
+            // Display the first announcement
+            displayCurrentAnnouncement();
+            
+            // Start rotation
+            rotateAnnouncements();
+        }
+        
+        function displayCurrentAnnouncement() {
+            if (announcements.length === 0) return;
+            
+            const ad = announcements[currentAdIndex];
+            const adsContainer = document.getElementById('ads-container');
+            
+            console.log('Displaying announcement:', ad);
+            
+            // Clear previous content
+            adsContainer.innerHTML = '';
+            
+            // Create the appropriate element based on file type
+            const adElement = document.createElement('div');
+            adElement.className = 'ad-item active';
+            
+            // Get URL (always use direct download link for Dropbox URLs)
+            let directUrl = ad.fileUrl;
+            if (ad.fileUrl && ad.fileUrl.includes('dropbox.com')) {
+                directUrl = convertToDirectDownloadLink(ad.fileUrl);
+                console.log(`Original Dropbox URL: ${ad.fileUrl}`);
+                console.log(`Converted to direct download URL: ${directUrl}`);
+            } else {
+                console.log(`Using original URL: ${directUrl}`);
+            }
+            
+            if (ad.fileType === 'image') {
+                // Create image element
+                const img = document.createElement('img');
+                img.src = directUrl;
+                img.alt = ad.title;
+                img.className = 'ad-image';
+                img.loading = "lazy";
+                img.onload = () => console.log(`Image loaded successfully: ${ad.title}`);
+                img.onerror = (e) => {
+                    console.error(`Error loading image: ${ad.title}`, e);
+                    console.error(`Failed image URL: ${directUrl}`);
+                    showDefaultAd();
+                };
+                adElement.appendChild(img);
+            } else if (ad.fileType === 'video') {
+                // Create video element with all necessary attributes for auto-play
+                const video = document.createElement('video');
+                
+                // Log the video URL for debugging
+                console.log('Loading video from raw URL:', directUrl);
+                
+                // Set video attributes
+                video.src = directUrl;
+                video.className = 'ad-image'; // Reuse the same class for sizing
+                video.autoplay = true;
+                video.muted = true; // Must be muted for autoplay in most browsers
+                video.loop = true;
+                video.playsInline = true; // Needed for iOS
+                video.controls = false;
+                video.preload = "auto"; // Preload video data
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.objectFit = 'contain';
+                
+                // Add event listeners for debugging
+                video.onloadeddata = () => console.log(`Video loaded successfully: ${ad.title}`);
+                video.onplaying = () => console.log(`Video started playing: ${ad.title}`);
+                video.oncanplay = () => console.log(`Video can play: ${ad.title}`);
+                video.onerror = (e) => {
+                    console.error(`Error loading video: ${ad.title}`, e);
+                    console.error('Video error code:', video.error ? video.error.code : 'unknown');
+                    console.error('Video error message:', video.error ? video.error.message : 'unknown');
+                    showDefaultAd();
+                };
+                
+                adElement.appendChild(video);
+                
+                // Force the video to play (needed for some browsers)
+                setTimeout(() => {
+                    video.play().catch(e => {
+                        console.error("Video play error:", e);
+                        // Try with different MIME type if available
+                        if (directUrl.includes('.mp4')) {
+                            console.log("Trying to add explicit MIME type for MP4");
+                            video.setAttribute('type', 'video/mp4');
+                            video.load();
+                            video.play().catch(e2 => console.error("Second video play attempt failed:", e2));
+                        }
+                    });
+                }, 1000); // Increased timeout to give more time to load
+            }
+            
+            // Add the element to the container
+            adsContainer.appendChild(adElement);
+        }
+        
+        function rotateAnnouncements() {
+            if (announcements.length <= 1) return;
+            
+            const currentAd = announcements[currentAdIndex];
+            const duration = currentAd.duration || 10; // Default to 10 seconds
+            
+            adRotationTimer = setTimeout(() => {
+                // Move to next announcement
+                currentAdIndex = (currentAdIndex + 1) % announcements.length;
+                displayCurrentAnnouncement();
+                
+                // Set up next rotation
+                rotateAnnouncements();
+            }, duration * 1000);
+        }
+        
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+        
+        function updateClock() {
+            const now = new Date();
+            const timeElem = document.getElementById('current-time');
+            if (timeElem) {
+                timeElem.textContent = now.toLocaleTimeString() + ' - ' + now.toLocaleDateString();
+            }
+        }
+        
+        // Test function to check if localStorage is working
+        function testLocalStorage() {
+            try {
+                // Try to write to localStorage
+                localStorage.setItem('testKey', 'testValue');
+                // Try to read from localStorage
+                const testValue = localStorage.getItem('testKey');
+                console.log('LocalStorage test:', testValue === 'testValue' ? 'PASSED' : 'FAILED');
+                
+                // Check existing announcements
+                const tvAnnouncements = localStorage.getItem('tvDisplayAnnouncements');
+                const aisatAnnouncements = localStorage.getItem('aisatAnnouncements');
+                
+                console.log('tvDisplayAnnouncements exists:', tvAnnouncements ? 'YES' : 'NO');
+                console.log('aisatAnnouncements exists:', aisatAnnouncements ? 'YES' : 'NO');
+                
+                // Create a test announcement if none exist
+                if (!tvAnnouncements && !aisatAnnouncements) {
+                    console.log('Creating test announcement in localStorage');
+                    
+                    const testAnnouncement = [{
+                        id: 'test123',
+                        title: 'Test Announcement',
+                        duration: 10,
+                        fileType: 'image',
+                        fileUrl: 'https://www.dropbox.com/s/abcdef/test.jpg?dl=0',
+                        isActive: true,
+                        dateAdded: new Date().toISOString()
+                    }];
+                    
+                    localStorage.setItem('tvDisplayAnnouncements', JSON.stringify(testAnnouncement));
+                    console.log('Test announcement created');
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('LocalStorage test failed:', error);
+                return false;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM content loaded, initializing page...');
+            // Test localStorage functionality
+            const localStorageWorking = testLocalStorage();
+            console.log('LocalStorage working:', localStorageWorking);
+            
+            // Load ticker messages immediately and update display
+            console.log('Loading and displaying ticker messages...');
+            loadTickerMessages()
+                .then(updated => {
+                    console.log('Ticker messages loaded, updating display');
+                    updateTickerContent();
+                })
+                .catch(error => {
+                    console.error('Error loading ticker messages:', error);
+                    // Still update ticker content with default messages
+                    updateTickerContent();
+                });
+            
+            // Initialize global filter settings if not present
+            if (!localStorage.getItem('adminFilterSettings')) {
+                console.log('Initializing default filter settings');
+                const defaultSettings = {
+                    express: true,
+                    regular: true,
+                    priority: true
+                };
+                localStorage.setItem('adminFilterSettings', JSON.stringify(defaultSettings));
+            }
+            
+            updateClock();
+            setInterval(updateClock, 1000);
+            fetchData();
+            setInterval(fetchData, 5000); // Refresh data every 5 seconds
+            window.addEventListener('resize', updateTickerContent); // Update on resize
+            
+            // Load and initialize announcements
+            loadAnnouncements();
+            // Check for new announcements periodically
+            setInterval(loadAnnouncements, 30000); // Refresh every 30 seconds
+            
+            // Check for ticker message updates periodically
+            setInterval(() => {
+                console.log('Periodic ticker update check...');
+                loadTickerMessages()
+                    .then(updated => {
+                        if (updated) {
+                            console.log('Ticker messages updated, refreshing display');
+                            updateTickerContent();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking for ticker updates:', error);
+                    });
+            }, 30000); // Refresh every 30 seconds
+            
+            // Add event listener for video errors to retry loading
+            document.addEventListener('error', function(e) {
+                if (e.target.tagName === 'VIDEO' || e.target.tagName === 'IMG') {
+                    console.log('Media element error detected, attempting to reload');
+                    // Try reloading the element after a short delay
+                    setTimeout(() => {
+                        const src = e.target.src;
+                        e.target.src = '';
+                        e.target.src = src;
+                    }, 2000);
+                }
+            }, true); // Capture phase to catch all errors
+        });
+        
+        function fetchData() {
+            // First, fetch filter settings before fetching requests
+            let filterSettingsPromise = fetchFilterSettings();
+            
+            // Then fetch pending requests after settings are loaded
+            filterSettingsPromise.then(() => {
+            // Fetch pending requests
+            fetch('https://jimboyaczon.pythonanywhere.com/api/tv_pending_requests')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server responded with ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Compare with previous data to detect changes
+                    const changes = detectChanges(data, previousRequests);
+                    previousRequests = JSON.parse(JSON.stringify(data)); // Deep copy
+                    
+                    // Update queue display with change information
+                    updateQueueDisplay(data, changes);
+                    
+                    // First try to get admin profile with room name
+                    const token = localStorage.getItem('userToken');
+                    if (token) {
+                        fetch('https://jimboyaczon.pythonanywhere.com/api/admin/profile', {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`Admin profile fetch failed: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(adminData => {
+                                console.log("Admin profile response:", adminData);
+                                
+                                // Always consider admin active for TV display
+                                // This ensures the admin window is always shown
+                                const adminId = adminData.id;
+                                const adminInfo = {
+                                    id: adminId,
+                                    room_name: adminData.room_name || `Room ${adminId}`,
+                                    is_active: 'yes' // Force active status
+                                };
+                                
+                                console.log("Admin profile fetched successfully:", adminInfo);
+                                
+                                // Update our stored admin info
+                                updateStoredAdminInfo(adminInfo);
+                                
+                                // Create window for this admin
+                                createOrUpdateAdminWindow(adminId, data, changes);
+                                
+                                // Clean up any windows that don't match this admin ID
+                                cleanupAdminWindows([adminId]);
+                                
+                                // Also set the admin as active in the database
+                                fetch(`https://jimboyaczon.pythonanywhere.com/api/set_admin_active?admin_id=${adminId}&is_active=yes`)
+                                    .then(response => response.json())
+                                    .then(data => console.log("Admin set to active:", data))
+                                    .catch(error => console.error("Error setting admin active:", error));
+                        })
+                        .catch(error => {
+                            console.error("Error fetching admin profile:", error);
+                            // Fallback to set_admin_active endpoint
+                            checkAdminActiveStatus(data, changes);
+                        });
+                    } else {
+                        // No token, fallback to set_admin_active endpoint
+                        checkAdminActiveStatus(data, changes);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching requests:", error);
+                    });
+            });
+        }
+        
+        function fetchFilterSettings() {
+            return new Promise((resolve, reject) => {
+                fetch(`https://jimboyaczon.pythonanywhere.com/api/get_announcements`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Server responded with ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.filterSettings) {
+                            console.log("Filter settings from announcements API:", data.filterSettings);
+                            // Store the filter settings globally for all admins
+                            window.globalFilterSettings = data.filterSettings;
+                            localStorage.setItem('adminFilterSettings', JSON.stringify(data.filterSettings));
+                            resolve(data.filterSettings);
+                        } else {
+                            fetch(`https://jimboyaczon.pythonanywhere.com/api/tv/get-admin-settings?admin_id=1`)
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`Server responded with ${response.status}`);
+                                    }
+                                    return response.json();
+                                })
+                                .then(settingsData => {
+                                    if (settingsData.settings && settingsData.settings.filter_settings) {
+                                        console.log("Admin filter settings fetched from TV endpoint:", settingsData.settings.filter_settings);
+                                        window.globalFilterSettings = settingsData.settings.filter_settings;
+                                        localStorage.setItem('adminFilterSettings', JSON.stringify(settingsData.settings.filter_settings));
+                                        resolve(settingsData.settings.filter_settings);
+                                    } else {
+                                        const defaultSettings = {
+                                            express: true,
+                                            regular: true,
+                                            priority: true
+                                        };
+                                        window.globalFilterSettings = defaultSettings;
+                                        localStorage.setItem('adminFilterSettings', JSON.stringify(defaultSettings));
+                                        resolve(defaultSettings);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error("Error fetching filter settings from TV endpoint:", error);
+                                    // Fall back to default settings
+                                    const defaultSettings = {
+                                        express: true,
+                                        regular: true,
+                                        priority: true
+                                    };
+                                    window.globalFilterSettings = defaultSettings;
+                                    localStorage.setItem('adminFilterSettings', JSON.stringify(defaultSettings));
+                                    resolve(defaultSettings);
+                                });
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching filter settings from server:", error);
+                        // Try the non-authenticated endpoint for admin 1 (default)
+                        fetch(`https://jimboyaczon.pythonanywhere.com/api/tv/get-admin-settings?admin_id=1`)
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`Server responded with ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                            .then(settingsData => {
+                                if (settingsData.settings && settingsData.settings.filter_settings) {
+                                    console.log("Admin filter settings fetched from TV endpoint:", settingsData.settings.filter_settings);
+                                    // Store the filter settings globally for all admins
+                                    window.globalFilterSettings = settingsData.settings.filter_settings;
+                                    localStorage.setItem('adminFilterSettings', JSON.stringify(settingsData.settings.filter_settings));
+                                    resolve(settingsData.settings.filter_settings);
+                                } else {
+                                    // Fall back to default settings
+                                    const defaultSettings = {
+                                        express: true,
+                                        regular: true,
+                                        priority: true
+                                    };
+                                    window.globalFilterSettings = defaultSettings;
+                                    localStorage.setItem('adminFilterSettings', JSON.stringify(defaultSettings));
+                                    resolve(defaultSettings);
+                                }
+                            })
+                            .catch(error => {
+                                console.error("Error fetching filter settings from TV endpoint:", error);
+                                // Fall back to default settings
+                                const defaultSettings = {
+                                    express: true,
+                                    regular: true,
+                                    priority: true
+                                };
+                                window.globalFilterSettings = defaultSettings;
+                                localStorage.setItem('adminFilterSettings', JSON.stringify(defaultSettings));
+                                resolve(defaultSettings);
+                            });
+                    });
+                });
+        }
+        
+        function checkAdminActiveStatus(data, changes) {
+            console.log("Checking admin active status and forcing admin 1 to be active");
+            
+            // Always make admin 1 active for TV display
+            fetch('https://jimboyaczon.pythonanywhere.com/api/set_admin_active?admin_id=1&is_active=yes')
+                .then(response => response.json())
+                .then(adminData => {
+                    console.log("Admin 1 set to active:", adminData);
+                    
+                    if (adminData && adminData.admin) {
+                        // Use the admin from the response
+                        const adminId = adminData.admin.id;
+                        const adminInfo = {
+                            id: adminId,
+                            room_name: adminData.admin.room_name || `Room ${adminId}`,
+                            is_active: 'yes'
+                        };
+                        
+                        // Update our stored admin info
+                        updateStoredAdminInfo(adminInfo);
+                        
+                        // Create window for this admin
+                        createOrUpdateAdminWindow(adminId, data, changes);
+                        
+                        // Clean up any windows that don't match this admin ID
+                        cleanupAdminWindows([adminId]);
+                    } else {
+                        // Fallback to checking other active admins
+            fetch('https://jimboyaczon.pythonanywhere.com/api/admin/active-status-check')
+                .then(response => {
+                    if (!response.ok) {
+                                    throw new Error("Active status check failed");
+                    }
+                    return response.json();
+                })
+                .then(statusData => {
+                                if (statusData && statusData.active_admins && statusData.active_admins.length > 0) {
+                                    // Use the first active admin
+                                    const activeAdmin = statusData.active_admins[0];
+                                    const adminId = activeAdmin.id;
+                                    
+                                    // Create window for this admin
+                                    createOrUpdateAdminWindow(adminId, data, changes);
+                                    
+                                    // Clean up any windows that don't match this admin ID
+                                    cleanupAdminWindows([adminId]);
+                    } else {
+                                    // Extract admin IDs from requests as last resort
+                                    extractAdminsFromRequests(data, changes);
+                    }
+                })
+                .catch(error => {
+                                console.error("Error checking active admins:", error);
+                                extractAdminsFromRequests(data, changes);
+                            });
+                    }
+                })
+                .catch(error => {
+                    console.error("Error setting admin 1 active:", error);
+                    // Try the original fallback
+                    fetchAdminFromActiveEndpoint(data, changes);
+                });
+        }
+        
+        function fetchAdminFromActiveEndpoint(data, changes) {
+            // Get the current admin from the set_admin_active endpoint
+            // Force admin 1 to be active
+            fetch('https://jimboyaczon.pythonanywhere.com/api/set_admin_active?admin_id=1&is_active=yes')
+                .then(response => response.json())
+                .then(adminData => {
+                    if (adminData && adminData.admin) {
+                        // Store admin info for reference
+                        const adminId = adminData.admin.id;
+                        
+                        // Check if we already have room name info for this admin
+                        const existingAdminInfo = storedAdminInfo[adminId];
+                        
+                        const adminInfo = {
+                            id: adminId,
+                            // Keep existing room name if available, otherwise use from set_admin_active
+                            room_name: (existingAdminInfo && existingAdminInfo.room_name) || 
+                                      adminData.admin.room_name || 
+                                      `Room ${adminId}`,
+                            is_active: 'yes' // Force active status
+                        };
+                        
+                        console.log("Admin fetched from set_admin_active:", adminInfo);
+                        
+                        // Update our stored admin info
+                        updateStoredAdminInfo(adminInfo);
+                        
+                        // Create window for this admin
+                        createOrUpdateAdminWindow(adminId, data, changes);
+                        
+                        // Clean up any windows that don't match this admin ID
+                        cleanupAdminWindows([adminId]);
+                    } else {
+                        // Create a default admin with ID 1 if none found
+                        console.log("No admin found, creating default admin with ID 1");
+                        const adminId = 1;
+                        const adminInfo = {
+                            id: adminId,
+                            room_name: `Room ${adminId}`,
+                            is_active: 'yes'
+                        };
+                        
+                        // Update our stored admin info
+                        updateStoredAdminInfo(adminInfo);
+                        
+                        // Create window for this admin
+                        createOrUpdateAdminWindow(adminId, data, changes);
+                        
+                        // Clean up any windows that don't match this admin ID
+                        cleanupAdminWindows([adminId]);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching admin:", error);
+                    // Fallback: Try to extract admin IDs from requests
+                    extractAdminsFromRequests(data, changes);
+                });
+        }
+        
+        function extractAdminsFromRequests(data, changes) {
+            const adminIds = [...new Set(data
+                .filter(req => req.assigned_to)
+                .map(req => req.assigned_to))];
+            
+            if (adminIds.length > 0) {
+                // For each unique admin ID, create or update a window
+                adminIds.forEach(adminId => {
+                    // Get requests for this admin
+                    const adminRequests = data.filter(req => req.assigned_to == adminId);
+                    
+                    // Create or update admin window
+                    createOrUpdateAdminWindow(adminId, adminRequests, changes);
+                });
+                
+                // Clean up any windows that don't have matching admin IDs
+                cleanupAdminWindows(adminIds);
+            } else {
+                // No admin IDs found, show no windows message
+                cleanupAdminWindows([]);
+            }
+        }
+        
+        // Store admin information for reference
+        const storedAdminInfo = {};
+        
+        function updateStoredAdminInfo(adminInfo) {
+            storedAdminInfo[adminInfo.id] = adminInfo;
+        }
+        
+        function cleanupAdminWindows(activeAdminIds) {
+            const container = document.getElementById('windows-container');
+            const existingWindows = Array.from(container.querySelectorAll('.window'));
+            
+            existingWindows.forEach(window => {
+                const adminId = window.getAttribute('data-admin-id');
+                if (!activeAdminIds.includes(Number(adminId)) && !activeAdminIds.includes(adminId)) {
+                    window.remove();
+                }
+            });
+            
+            // Show/hide no windows message
+            const noWindowsMessage = document.getElementById('no-windows-message');
+            const remainingWindows = container.querySelectorAll('.window').length;
+            noWindowsMessage.style.display = remainingWindows > 0 ? 'none' : 'block';
+        }
+        
+        function createOrUpdateAdminWindow(adminId, requests, changes) {
+            const container = document.getElementById('windows-container');
+            const noWindowsMessage = document.getElementById('no-windows-message');
+            
+            // Get admin info from stored data or create default
+            const adminInfo = storedAdminInfo[adminId] || {
+                id: adminId,
+                room_name: `Room ${adminId}`,
+                is_active: 'yes'
+            };
+            
+            console.log(`Creating/updating window for admin ${adminId}`, adminInfo);
+            
+            const statusClass = adminInfo.is_active === 'yes' ? 'active' : 'inactive';
+            const roomName = adminInfo.room_name || `Room ${adminId}`;
+            
+            // Create window HTML
+            const windowHtml = `
+                <div class="window" data-admin-id="${adminId}">
+                    <div class="window-title">
+                        <span class="status-indicator ${statusClass}"></span>
+                        <span>${roomName}</span>
+                    </div>
+                    <div class="window-content">
+                        <div class="pending-list" id="pending-list-${adminId}">
+                            <div class="loading">Loading requests...</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Check if window already exists
+            const existingWindow = container.querySelector(`[data-admin-id="${adminId}"]`);
+            
+            if (!existingWindow) {
+                // Append new window before the "no windows" message
+                noWindowsMessage.insertAdjacentHTML('beforebegin', windowHtml);
+                noWindowsMessage.style.display = 'none';
+            } else {
+                // Update the room name if it has changed
+                const titleSpan = existingWindow.querySelector('.window-title span:nth-child(2)');
+                if (titleSpan && titleSpan.textContent !== roomName) {
+                    titleSpan.textContent = roomName;
+                }
+                
+                // Update status indicator if needed
+                const statusIndicator = existingWindow.querySelector('.status-indicator');
+                if (statusIndicator) {
+                    statusIndicator.className = `status-indicator ${statusClass}`;
+                }
+            }
+            
+            // Update pending list with change information
+            updatePendingList(adminId, requests, changes);
+        }
+        
+        function detectChanges(newData, oldData) {
+            if (!Array.isArray(oldData) || oldData.length === 0) {
+                // First load, everything is new
+                return newData.map(item => ({
+                    id: item.id,
+                    isNew: true,
+                    statusChanged: false
+                }));
+            }
+            
+            // Track changes for each request
+            return newData.map(newItem => {
+                const oldItem = oldData.find(old => old.id === newItem.id);
+                
+                if (!oldItem) {
+                    // New request
+                    return {
+                        id: newItem.id,
+                        isNew: true,
+                        statusChanged: false
+                    };
+                }
+                
+                // Check if status changed
+                const statusChanged = oldItem.status !== newItem.status;
+                
+                return {
+                    id: newItem.id,
+                    isNew: false,
+                    statusChanged: statusChanged
+                };
+            });
+        }
+        
+        function detectAdminChanges(newAdmin, oldAdmin) {
+            if (!oldAdmin || Object.keys(oldAdmin).length === 0) {
+                // First load
+                return { isNew: true, statusChanged: false };
+            }
+            
+            return {
+                isNew: false,
+                statusChanged: newAdmin.is_active !== oldAdmin.is_active,
+                roomChanged: newAdmin.room_name !== oldAdmin.room_name
+            };
+        }
+        
+        function detectMultipleAdminChanges(newAdmins, oldAdmins) {
+            if (!Array.isArray(oldAdmins) || oldAdmins.length === 0) {
+                // First load
+                return newAdmins.map(() => ({ isNew: true, statusChanged: false }));
+            }
+            
+            return newAdmins.map(newAdmin => {
+                const oldAdmin = oldAdmins.find(old => old.id === newAdmin.id);
+                
+                if (!oldAdmin) {
+                    // New admin
+                    return { isNew: true, statusChanged: false, roomChanged: false };
+                }
+                
+                return {
+                    isNew: false,
+                    statusChanged: newAdmin.is_active !== oldAdmin.is_active,
+                    roomChanged: newAdmin.room_name !== oldAdmin.room_name
+                };
+            });
+        }
+        
+        function updateMultipleAdminDisplay(admins, changes = null) {
+            const container = document.getElementById('windows-container');
+            const noWindowsMessage = document.getElementById('no-windows-message');
+            
+            // Filter to only active admins
+            const activeAdmins = admins.filter(admin => admin.is_active === 'yes');
+            
+            // If no active admins, show no windows message
+            if (activeAdmins.length === 0) {
+                noWindowsMessage.style.display = 'block';
+                // Remove all windows
+                const existingWindows = container.querySelectorAll('.window');
+                existingWindows.forEach(window => window.remove());
+                return;
+            } else {
+                noWindowsMessage.style.display = 'none';
+            }
+            
+            // Get all current windows
+            const existingWindows = Array.from(container.querySelectorAll('.window'));
+            const existingIds = existingWindows.map(window => window.getAttribute('data-admin-id'));
+            
+            // Remove windows for admins that are no longer active
+            existingWindows.forEach(window => {
+                const adminId = window.getAttribute('data-admin-id');
+                if (!activeAdmins.some(admin => admin.id == adminId)) {
+                    window.remove();
+                }
+            });
+            
+            // Add or update windows for active admins
+            activeAdmins.forEach((admin, index) => {
+                const statusClass = admin.is_active === 'yes' ? 'active' : 'inactive';
+                
+                // Create window HTML
+                const windowHtml = `
+                    <div class="window" data-admin-id="${admin.id}">
+                        <div class="window-title">
+                            <span class="status-indicator ${statusClass}"></span>
+                            <span>${admin.room_name || ''}</span>
+                        </div>
+                        <div class="window-content">
+                            <div class="pending-list" id="pending-list-${admin.id}">
+                                <div class="loading">Loading requests...</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Check if window already exists
+                const existingWindow = container.querySelector(`[data-admin-id="${admin.id}"]`);
+                const adminChange = changes ? changes[index] : null;
+                
+                if (existingWindow) {
+                    // Only update if there are changes to avoid unnecessary DOM operations
+                    if (adminChange && (adminChange.statusChanged || adminChange.roomChanged)) {
+                        existingWindow.outerHTML = windowHtml;
+                    }
+                } else {
+                    // Append new window before the "no windows" message
+                    noWindowsMessage.insertAdjacentHTML('beforebegin', windowHtml);
+                }
+                
+                // Load pending requests for this window
+                fetchPendingRequestsForAdmin(admin.id);
+            });
+        }
+        
+        function fetchPendingRequestsForAdmin(adminId) {
+            fetch('https://jimboyaczon.pythonanywhere.com/api/tv_pending_requests')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server responded with ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Compare with previous data to detect changes
+                    const changes = detectChanges(data, previousRequests);
+                    
+                    // Filter requests for this specific admin
+                    const adminRequests = data.filter(req => req.assigned_to == adminId);
+                    
+                    // Update pending list with change information
+                    updatePendingList(adminId, adminRequests, changes);
+                })
+                .catch(error => {
+                    console.error("Error fetching pending requests:", error);
+                    const pendingList = document.getElementById(`pending-list-${adminId}`);
+                    if (pendingList) {
+                        pendingList.innerHTML = '<div class="empty">No pending requests</div>';
+                    }
+                });
+        }
+        
+        function updatePendingList(adminId, requests, changes = null) {
+            const pendingList = document.getElementById(`pending-list-${adminId}`);
+            if (!pendingList) return;
+            
+            // Handle case where requests is not an array
+            if (!Array.isArray(requests)) {
+                pendingList.innerHTML = '<div class="empty">No pending requests</div>';
+                return;
+            }
+            
+            // Use global filter settings that were fetched earlier
+            let filterSettings = window.globalFilterSettings || {
+                express: true,
+                regular: true,
+                priority: true
+            };
+            
+            // Filter and sort requests exactly like in pending_request.html
+            const now = new Date();
+            
+            // Filter requests based on admin preferences and exclude future scheduled requests
+            const relevantRequests = requests
+                .filter(req => {
+                    // First check if it's a scheduled request (future date)
+                    if (req.schedule) {
+                        const scheduleDate = new Date(req.schedule);
+                        // If schedule is in the future, exclude it (it belongs on scheduled_request.html)
+                        if (scheduleDate > now) {
+                            return false;
+                        }
+                    }
+                    
+                    // Then check if it's pending or oncall
+                    if (req.status !== 'pending' && req.status !== 'oncall') {
+                        return false;
+                    }
+                    
+                    // If payment type is not specified, always show it
+                    if (!req.payment) return true;
+                    
+                    // Otherwise, check if the payment type is enabled in filter settings
+                    return (
+                        (req.payment === 'express' && filterSettings.express) ||
+                        (req.payment === 'regular' && filterSettings.regular) ||
+                        (req.payment === 'priority' && filterSettings.priority)
+                    );
+                })
+                .sort((a, b) => {
+                    // Sort by schedule time (earliest first)
+                    const dateA = a.schedule ? new Date(a.schedule) : new Date();
+                    const dateB = b.schedule ? new Date(b.schedule) : new Date();
+                    return dateA - dateB;
+                });
+            
+            if (relevantRequests.length === 0) {
+                pendingList.innerHTML = '<div class="empty">No pending requests matching filter</div>';
+                return;
+            }
+            
+            // Limit to 3 requests - these will be exactly the same first 3 as in pending_request.html
+            const limitedRequests = relevantRequests.slice(0, 3);
+            
+            let html = '';
+            limitedRequests.forEach(request => {
+                const paymentClass = request.payment || 'regular';
+                const oncallClass = request.status === 'oncall' ? 'oncall' : '';
+                
+                // Check if this request is new or has changed status
+                let animationClass = '';
+                if (changes) {
+                    const requestChange = changes.find(c => c.id === request.id);
+                    if (requestChange && (requestChange.isNew || requestChange.statusChanged)) {
+                        animationClass = 'new-item';
+                    }
+                }
+                
+                html += `
+                    <div class="pending-item ${paymentClass} ${oncallClass} ${animationClass}">
+                        <div>
+                            <div class="request-id">${request.request_id || ''}</div>
+                            <div class="student-name">${request.name || ''}</div>
+                        </div>
+                        <div style="font-size: 18px;">${request.level || ''}</div>
+                    </div>
+                `;
+            });
+            
+            pendingList.innerHTML = html;
+        }
+        
+        function updateQueueDisplay(requests, changes = null) {
+            const expressQueue = document.getElementById('express-queue');
+            const priorityQueue = document.getElementById('priority-queue');
+            const regularQueue = document.getElementById('regular-queue');
+            const currentQueue = document.getElementById('current-queue');
+            
+            // Clear previous data
+            expressQueue.innerHTML = '';
+            priorityQueue.innerHTML = '';
+            regularQueue.innerHTML = '';
+            currentQueue.innerHTML = '';
+            
+            let expressCount = 0;
+            let priorityCount = 0;
+            let regularCount = 0;
+            let oncallHtml = '';
+            
+            // Filter requests exactly like in pending_request.html
+            const now = new Date();
+            
+            const pendingRequests = requests
+                .filter(req => {
+                    // First check if it's a scheduled request (future date)
+                    if (req.schedule) {
+                        const scheduleDate = new Date(req.schedule);
+                        // If schedule is in the future, exclude it
+                        if (scheduleDate > now) {
+                            return false;
+                        }
+                    }
+                    
+                    // Then check if it's pending or oncall
+                    return (req.status === 'pending' || req.status === 'oncall');
+                })
+                .sort((a, b) => {
+                    // Sort by schedule time (earliest first)
+                    const dateA = a.schedule ? new Date(a.schedule) : new Date();
+                    const dateB = b.schedule ? new Date(b.schedule) : new Date();
+                    return dateA - dateB;
+                });
+            
+            pendingRequests.forEach(request => {
+                // Check if this request is new or has changed status
+                let animationClass = '';
+                if (changes) {
+                    const requestChange = changes.find(c => c.id === request.id);
+                    if (requestChange && (requestChange.isNew || requestChange.statusChanged)) {
+                        animationClass = 'new-item';
+                    }
+                }
+                
+                const reqIdElement = `<div class="waiting-number ${animationClass}">${request.request_id || '-'}</div>`;
+                
+                if (request.status === 'oncall') {
+                    // Add to current queue (oncall)
+                    oncallHtml += request.request_id + ' ';
+                } else if (request.status === 'pending') {
+                    // Add to appropriate queue based on payment type
+                    // Don't apply filter settings here - show all requests
+                    if (request.payment === 'express') {
+                        expressQueue.innerHTML += reqIdElement;
+                        expressCount++;
+                    } else if (request.payment === 'priority') {
+                        priorityQueue.innerHTML += reqIdElement;
+                        priorityCount++;
+                    } else {
+                        // Default to regular
+                        regularQueue.innerHTML += reqIdElement;
+                        regularCount++;
+                    }
+                }
+            });
+            
+            // Update the counts
+            document.getElementById('express-count').textContent = expressCount;
+            document.getElementById('priority-count').textContent = priorityCount;
+            document.getElementById('regular-count').textContent = regularCount;
+            
+            // Update current queue
+            currentQueue.textContent = oncallHtml || 'No students being served';
+            
+            // Update the ticker with new queue information
+            updateTickerContent();
+        }
+    </script>
+</body>
+</html>
